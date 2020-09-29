@@ -1,3 +1,7 @@
+---------------------------------------------------------------------------------
+-- settings
+---------------------------------------------------------------------------------
+
 -- 상수
 local inputEnglish = 'com.apple.keylayout.ABC'
 local inputKorean = 'com.apple.inputmethod.Korean.390Sebulshik'
@@ -10,6 +14,10 @@ local inputLabels = {
 
 -- alert 스타일 세팅
 hs.alert.defaultStyle.textStyle = {paragraphStyle = {alignment = "center"}}
+
+---------------------------------------------------------------------------------
+-- 함수 정의부
+---------------------------------------------------------------------------------
 
 function escapeForVIM()
 	local inputSource = hs.keycodes.currentSourceID()
@@ -35,6 +43,10 @@ function toggleInputSource()
 		lastToggleInputSource = inputKorean
 	end
 end
+
+---------------------------------------------------------------------------------
+-- Main
+---------------------------------------------------------------------------------
 
 -- initialization
 hs.keycodes.currentSourceID(inputKorean)
