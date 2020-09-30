@@ -59,7 +59,24 @@ hs.hotkey.bind({'option'}, 'space', openIterm)
 hs.hotkey.bind({'control'}, 'space', toggleInputSource)
 
 -- 기타 이벤트
+local start_time = os.time()
+local consecutive_call_cnt = 0
 hs.keycodes.inputSourceChanged(function ()
+	-- focus 감지 로
+	-- inupt 에 포커싱 할 경우 콜백이 연속 3~4번 호출된다는 규칙을 보고 트릭 사용
+	-- focus, prompt 감지 api는 없는걸까...
+	if (os.difftime(os.time(), start_time) > 1) then -- 이전포커싱과 2초차이 나는경우 새로운 창을 클릭했다 가
+		consecutive_call_cnt = 0
+		start_time = os.time()
+	end
+	consecutive_call_cnt = consecutive_call_cnt + 1
+	print(consecutive_call_cnt)
+	if (consecutive_call_cnt == 3 or consecutive_call_cnt == 4) then
+		hs.alert.closeAll()
+		hs.alert.show(inputLabels[hs.keycodes.currentSourceID()], 1)
+	end
+
+	-- 키보드 언어 변경 감지
 	local currentInputSource = hs.keycodes.currentSourceID()
 	if not (lastInputSource == currentInputSource) then
 		lastInputSource = currentInputSource
