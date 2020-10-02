@@ -75,12 +75,23 @@ function handleInputSourceChange()
 	end
 end
 
+-- 클립보드 가공
+local function cleanPasteboard()
+	local pb = hs.pasteboard.contentTypes()
+	local contains = hs.fnutils.contains
+	if contains(pb, 'com.apple.webarchive') and contains(pb, 'public.rtf') then
+		hs.pasteboard.setContents(hs.pasteboard.getContents())
+	end 
+end
+
 ---------------------------------------------------------------------------------
 -- Main
 ---------------------------------------------------------------------------------
 
 -- initialization
 hs.loadSpoon('ReloadConfiguration')
+local messagesWindowFilter = hs.window.filter.new(false):setAppFilter('Messages')
+messagesWindowFilter:subscribe(hs.window.filter.windowFocused, cleanPasteboard)
 -- hs.application.enableSpotlightForNameSearches(true)
 
 -- 키바인딩 이벤트
@@ -161,18 +172,6 @@ end)
 --     {"iTunes",  "MiniPlayer", laptopScreen, nil, nil, hs.geometry.rect(0, -48, 400, 48)},
 -- }
 -- hs.layout.apply(windowLayout)
-
--- 클립보드 가공
-local function cleanPasteboard()
-	local pb = hs.pasteboard.contentTypes()
-	local contains = hs.fnutils.contains
-	if contains(pb, 'com.apple.webarchive') and contains(pb, 'public.rtf') then
-		hs.pasteboard.setContents(hs.pasteboard.getContents())
-	end 
-end
-
-local messagesWindowFilter = hs.window.filter.new(false):setAppFilter('Messages')
-messagesWindowFilter:subscribe(hs.window.filter.windowFocused, cleanPasteboard)
 
 -- -- GUI 메뉴 자동화
 -- function cycle_safari_agents()
