@@ -190,27 +190,28 @@ wifiWatcher = hs.wifi.watcher.new(handleSSIDChanged)
 wifiWatcher:start()
 -- hs.application.enableSpotlightForNameSearches(true)
 
--- 키바인딩 이벤트
+-- 이벤트
 hs.hotkey.bind({'control'}, 33, escapeForVIM)
 hs.hotkey.bind({'option'}, 'space', openIterm)
 hs.hotkey.bind({'control'}, 'space', toggleInputSource)
 hs.hotkey.bind({'cmd', 'alt', 'shift'}, 'D', mouseHighlight)
+hs.hotkey.bind({'cmd', 'alt', 'ctrl'}, 'Left', bind(halfScreenWindow, 'Left'))
+hs.hotkey.bind({'cmd', 'alt', 'ctrl'}, 'Right', bind(halfScreenWindow, 'Right'))
+hs.hotkey.bind({'cmd', 'alt', 'ctrl'}, 'Up', bind(halfScreenWindow, 'Up'))
+hs.hotkey.bind({'cmd', 'alt', 'ctrl'}, 'Down', bind(halfScreenWindow, 'Down'))
 spoon.ReloadConfiguration:bindHotkeys({
 	reloadConfiguration = {{"cmd", "alt", "ctrl"}, "R"}
 })
-
--- 기타 이벤트
 hs.keycodes.inputSourceChanged(handleInputSourceChange)
 
 -- 최종 Config File 와칭 설정
 spoon.ReloadConfiguration:start()
 hs.alert.show('Config loaded') 
 
--- 예제공부 (Getting Started To Hammerspoon)
-hs.hotkey.bind({'cmd', 'alt', 'ctrl'}, 'Left', bind(halfScreenWindow, 'Left'))
-hs.hotkey.bind({'cmd', 'alt', 'ctrl'}, 'Right', bind(halfScreenWindow, 'Right'))
-hs.hotkey.bind({'cmd', 'alt', 'ctrl'}, 'Up', bind(halfScreenWindow, 'Up'))
-hs.hotkey.bind({'cmd', 'alt', 'ctrl'}, 'Down', bind(halfScreenWindow, 'Down'))
+
+---------------------------------------------------------------------------------
+-- 예제공부, 쓸만한 예제들 (Getting Started To Hammerspoon)
+---------------------------------------------------------------------------------
 
 -- -- 화면 미리세팅
 -- local laptopScreen = "Color LCD"
