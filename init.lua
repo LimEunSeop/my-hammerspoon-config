@@ -19,6 +19,11 @@ hs.alert.defaultStyle.textStyle = {paragraphStyle = {alignment = "center"}}
 -- 함수 정의부
 ---------------------------------------------------------------------------------
 
+-- helper function
+function bind(func, arg)
+	return function() return func(arg) end
+end
+
 function escapeForVIM()
 	local inputSource = hs.keycodes.currentSourceID()
 	if not (inputSource == inputEnglish) then
@@ -84,6 +89,93 @@ local function cleanPasteboard()
 	end 
 end
 
+local appWatcher = nil
+function applicationWatcher(appName, eventType, appObject)
+	if (eventType == hs.application.watcher.activated) then
+		if (appName == 'Finder') then
+			--Bring all Finder windows forward when one gets activated
+			appObject:selectMenuItem({'Window', 'Bring All to Front'})
+		end
+	end
+end
+
+local wifiWatcher = nil
+local homeSSID = 'iptime'
+local lastSSID = hs.wifi.currentNetwork()
+function handleSSIDChanged()
+	local newSSID = hs.wifi.currentNetwork()
+
+	if newSSID == homeSSID and lastSSID ~= homeSSID then
+		-- We just joined our home Wifi Network
+		hs.audiodevice.defaultOutputDevice():setVolume(50)
+	elseif newSSID ~= homeSSID and lastSSID == homeSSID then
+		-- We just departed our home WiFi network
+		hs.audiodevice.defaultOutputDevice():setVolume(0)
+	end
+
+	lastSSID = newSSID
+end
+
+local mouseCircle = nil
+local mouseCircleTimer = nil
+
+function mouseHighlight()
+    -- Delete an existing highlight if it exists
+    if mouseCircle then
+        mouseCircle:delete()
+        if mouseCircleTimer then
+            mouseCircleTimer:stop()
+        end
+    end
+    -- Get the current co-ordinates of the mouse pointer
+    mousepoint = hs.mouse.getAbsolutePosition()
+    -- Prepare a big red circle around the mouse pointer
+    mouseCircle = hs.drawing.circle(hs.geometry.rect(mousepoint.x-40, mousepoint.y-40, 80, 80))
+    mouseCircle:setStrokeColor({["red"]=1,["blue"]=0,["green"]=0,["alpha"]=1})
+    mouseCircle:setFill(false)
+    mouseCircle:setStrokeWidth(5)
+    mouseCircle:show()
+
+    -- Set a timer to delete the circle after 3 seconds
+    mouseCircleTimer = hs.timer.doAfter(3, function()
+    	mouseCircle:delete()
+    	mouseCircle = nil
+    end)
+end
+
+function halfScreenWindow(pos)
+	local win = hs.window.focusedWindow()
+	local f = win:frame()
+	local screen = win:screen()
+	local max = screen:frame()
+
+	if (pos == 'Left') then
+		f.x = max.x
+		f.y = max.y
+		f.w = max.w / 2
+		f.h = max.h
+	end
+	if (pos == 'Right') then
+		f.x = max.x + (max.w / 2)
+		f.y = max.y
+		f.w = max.w / 2
+		f.h = max.h
+	end
+	if (pos == 'Up') then
+		f.x = max.x
+		f.y = max.y
+		f.w = max.w
+		f.h = max.h / 2
+	end
+	if (pos == 'Down') then
+		f.x = max.x
+		f.y = max.y + (max.h / 2)
+		f.w = max.w
+		f.h = max.h / 2
+	end
+	win:setFrame(f)
+end
+
 ---------------------------------------------------------------------------------
 -- Main
 ---------------------------------------------------------------------------------
@@ -92,12 +184,17 @@ end
 hs.loadSpoon('ReloadConfiguration')
 local messagesWindowFilter = hs.window.filter.new(false):setAppFilter('Messages')
 messagesWindowFilter:subscribe(hs.window.filter.windowFocused, cleanPasteboard)
+appWatcher = hs.application.watcher.new(applicationWatcher)
+appWatcher:start()
+wifiWatcher = hs.wifi.watcher.new(handleSSIDChanged)
+wifiWatcher:start()
 -- hs.application.enableSpotlightForNameSearches(true)
 
 -- 키바인딩 이벤트
 hs.hotkey.bind({'control'}, 33, escapeForVIM)
 hs.hotkey.bind({'option'}, 'space', openIterm)
 hs.hotkey.bind({'control'}, 'space', toggleInputSource)
+hs.hotkey.bind({'cmd', 'alt', 'shift'}, 'D', mouseHighlight)
 spoon.ReloadConfiguration:bindHotkeys({
 	reloadConfiguration = {{"cmd", "alt", "ctrl"}, "R"}
 })
@@ -110,58 +207,10 @@ spoon.ReloadConfiguration:start()
 hs.alert.show('Config loaded') 
 
 -- 예제공부 (Getting Started To Hammerspoon)
-hs.hotkey.bind({'cmd', 'alt', 'ctrl'}, 'Left', function()
-	local win = hs.window.focusedWindow()
-	local f = win:frame()
-	local screen = win:screen()
-	local max = screen:frame()
-
-	f.x = max.x
-	f.y = max.y
-	f.w = max.w / 2
-	f.h = max.h
-	win:setFrame(f)
-	-- hs.alert.show('화면조정')
-end)
-
-hs.hotkey.bind({'cmd', 'alt', 'ctrl'}, 'Right', function()
-	local win = hs.window.focusedWindow()
-	local f = win:frame()
-	local screen = win:screen()
-	local max = screen:frame()
-
-	f.x = max.x + (max.w / 2)
-	f.y = max.y
-	f.w = max.w / 2
-	f.h = max.h
-	win:setFrame(f)
-end)
-
-hs.hotkey.bind({'cmd', 'alt', 'ctrl'}, 'Up', function()
-	local win = hs.window.focusedWindow()
-	local f = win:frame()
-	local screen = win:screen()
-	local max = screen:frame()
-
-	f.x = max.x
-	f.y = max.y
-	f.w = max.w
-	f.h = max.h / 2
-	win:setFrame(f)
-end)
-
-hs.hotkey.bind({'cmd', 'alt', 'ctrl'}, 'Down', function()
-	local win = hs.window.focusedWindow()
-	local f = win:frame()
-	local screen = win:screen()
-	local max = screen:frame()
-
-	f.x = max.x
-	f.y = max.y + (max.h / 2)
-	f.w = max.w
-	f.h = max.h / 2
-	win:setFrame(f)
-end)
+hs.hotkey.bind({'cmd', 'alt', 'ctrl'}, 'Left', bind(halfScreenWindow, 'Left'))
+hs.hotkey.bind({'cmd', 'alt', 'ctrl'}, 'Right', bind(halfScreenWindow, 'Right'))
+hs.hotkey.bind({'cmd', 'alt', 'ctrl'}, 'Up', bind(halfScreenWindow, 'Up'))
+hs.hotkey.bind({'cmd', 'alt', 'ctrl'}, 'Down', bind(halfScreenWindow, 'Down'))
 
 -- -- 화면 미리세팅
 -- local laptopScreen = "Color LCD"
@@ -200,3 +249,34 @@ end)
 --     end
 -- end
 -- hs.hotkey.bind({"cmd", "alt", "ctrl"}, '7', cycle_safari_agents)
+
+-- -- 위젯 생성
+-- caffeine = hs.menubar.new()
+-- function setCaffeineDisplay(state)
+-- 	if state then
+-- 		caffeine:setTitle('AWAKE')
+-- 	else
+-- 		caffeine:setTitle('SLEEPY')
+-- 	end
+-- end
+-- function caffeineClicked()
+-- 	setCaffeineDisplay(hs.caffeinate.toggle('displayIdle'))
+-- end
+-- if caffeine then
+-- 	caffeine:setClickCallback(caffeineClicked)
+-- 	setCaffeineDisplay(hs.caffeinate.get('displayIdle'))
+-- end
+
+-- -- Applescript 실행
+-- ok,result = hs.applescript('tell Application "iTunes" to artist of the current track as string')
+-- hs.alert.show(result)
+
+-- -- 앱 조작
+-- hs.itunes.pause()
+-- hs.spotify.play()
+-- hs.spotify.displayCurrentTrack()
+
+-- -- Url 매핑
+-- hs.urlevent.bind("someAlert", function(eventName, params)
+--     hs.alert.show("Received someAlert")
+-- end)
