@@ -100,7 +100,7 @@ function applicationWatcher(appName, eventType, appObject)
 end
 
 local wifiWatcher = nil
-local homeSSID = 'iptime'
+local homeSSID = 'private5G'
 local lastSSID = hs.wifi.currentNetwork()
 function handleSSIDChanged()
 	local newSSID = hs.wifi.currentNetwork()
@@ -188,6 +188,7 @@ appWatcher = hs.application.watcher.new(applicationWatcher)
 appWatcher:start()
 wifiWatcher = hs.wifi.watcher.new(handleSSIDChanged)
 wifiWatcher:start()
+hs.grid.setGrid('4x4')
 -- hs.application.enableSpotlightForNameSearches(true)
 
 -- 이벤트
@@ -199,6 +200,7 @@ hs.hotkey.bind({'cmd', 'alt', 'ctrl'}, 'Left', bind(halfScreenWindow, 'Left'))
 hs.hotkey.bind({'cmd', 'alt', 'ctrl'}, 'Right', bind(halfScreenWindow, 'Right'))
 hs.hotkey.bind({'cmd', 'alt', 'ctrl'}, 'Up', bind(halfScreenWindow, 'Up'))
 hs.hotkey.bind({'cmd', 'alt', 'ctrl'}, 'Down', bind(halfScreenWindow, 'Down'))
+hs.hotkey.bind({'cmd', 'alt', 'ctrl'}, 'Return', hs.grid.show)
 spoon.ReloadConfiguration:bindHotkeys({
 	reloadConfiguration = {{"cmd", "alt", "ctrl"}, "R"}
 })
