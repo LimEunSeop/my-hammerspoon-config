@@ -5,7 +5,7 @@
 -- 상수
 local inputEnglish = 'com.apple.keylayout.ABC'
 local inputKorean = 'com.apple.inputmethod.Korean.390Sebulshik'
-local inputJapanese = 'com.apple.inputmethod.Kotoeri.Japanese'
+local inputJapanese = 'com.apple.inputmethod.Kotoeri.RomajiTyping.Japanese'
 local inputLabels = {
 	[inputEnglish] = 'English',
 	[inputKorean] = '한국어',
@@ -73,6 +73,7 @@ function handleInputSourceChange()
 
 	-- 키보드 언어 변경 감지
 	local currentInputSource = hs.keycodes.currentSourceID()
+	print(currentInputSource)
 	if not (lastInputSource == currentInputSource) then
 		lastInputSource = currentInputSource
 		hs.alert.closeAll()
