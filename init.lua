@@ -52,18 +52,21 @@ function toggleInputSource()
 	end
 end
 
--- 인풋소스 체인지 이벤트 (나중에 input 박스 셀릭트 탐지 로직 적용하고싶음)
-local consecutive_call_cnt = 0
+-- -- 인풋소스 체인지 이벤트 (나중에 input 박스 셀릭트 탐지 로직 적용하고싶음)
+-- local consecutive_call_cnt = 0
 function handleInputSourceChange()
 
 	-- 키보드 언어 변경 감지
 	local currentInputSource = hs.keycodes.currentSourceID()
-	print(currentInputSource)
-	if not (lastInputSource == currentInputSource) then
-		lastInputSource = currentInputSource
-		hs.alert.closeAll()
-		hs.alert.show(inputLabels[hs.keycodes.currentSourceID()], 1)
-	end
+	-- print(currentInputSource)
+	lastInputSource = currentInputSource
+	
+	showCurrentInputSource()
+end
+
+function showCurrentInputSource(a)
+	hs.alert.closeAll()
+	hs.alert.show(inputLabels[hs.keycodes.currentSourceID()], 1)
 end
 
 -- 클립보드 가공
@@ -175,6 +178,7 @@ appWatcher:start()
 wifiWatcher = hs.wifi.watcher.new(handleSSIDChanged)
 wifiWatcher:start()
 hs.grid.setGrid('4x4')
+hs.window.filter.default:subscribe(hs.window.filter.windowFocused, showCurrentInputSource)
 -- hs.application.enableSpotlightForNameSearches(true)
 
 -- 이벤트
